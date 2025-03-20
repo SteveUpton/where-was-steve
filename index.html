@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Where Was Steve?</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="./assets.min.js"></script>
+
+  <style>
+    body { margin:0; padding:0; }
+    #map { position: absolute; top:0; bottom:0; right:0; left:0; }
+    #map-title { position: relative; margin-top: 10px; margin-left: 50px; float: left; background: white; border: 2px solid rgba(0,0,0,0.2); padding: 6px 8px; font-family: Helvetica; font-weight: bold; font-size: 24px; z-index: 800; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script>
+
+    var map = L.map('map', {
+      center: [50, 20],
+      zoom: 4,
+      scrollWheelZoom: true
+    });
+
+    L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://osm.org/copyright">\
+          OpenStreetMap</a> contributors, &copy;\
+          <a href="https://carto.com/attribution">CARTO</a>'
+    }).addTo(map);
+
+    const photoMarkerStyle = {
+      radius: 1,
+      fillColor: "#FFA500",
+      color: "#FFA500",
+      weight: 5,
+      fillOpacity: 1,
+      opacity: 1
+    }
+
+    var visitedCountryStyle = {
+      "color": "#005AFF",
+      "weight": 1,
+      "opacity": 0.6
+    };
+
+    var tripStyle = {
+      "color": "#FFA500",
+      "weight": 1.5,
+      "opacity": 1
+    };
+
+    function namePopup(feature, layer) {
+      if (feature.properties && feature.properties.name) {
+          layer.bindPopup(feature.properties.name);
+      }
+    }
+
+    var trips = [tripRTW, tripBaltics, tripRomaniaMoldova, tripKilimanjaro, tripAlps];
+
+    L.geoJSON(visitedCountries, {
+      filter: function(feature, layer) {
+          return feature.properties.visited;
+      },
+      style: visitedCountryStyle
+    }).addTo(map);
+
+    L.geoJSON(facebookPhotos, {
+      pointToLayer: function(feature, latlng) {
+        return L.circleMarker(latlng, photoMarkerStyle);
+      },
+      filter: function(feature, layer) {
+        return feature.geometry.coordinates.some(el => el !== null);
+      },
+      onEachFeature: namePopup
+    }).addTo(map);
+
+    function addTripToMap(trip) {
+      L.geoJSON(trip, {
+        style: tripStyle
+      }).addTo(map);
+    }
+
+    trips.forEach(addTripToMap);
+
+  </script>
+</body>
+</html>
